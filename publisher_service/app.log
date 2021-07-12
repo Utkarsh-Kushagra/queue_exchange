@@ -1,0 +1,52 @@
+
+2021-07-12 18:30:05,487 | ERROR  | Form data requires "python-multipart" to be installed. 
+You can install "python-multipart" with: 
+
+pip install python-multipart
+ | fastapi.check_file_field():105 
+2021-07-12 18:30:23,111 | INFO   | Started server process [123434] | uvicorn.error.serve():65  
+2021-07-12 18:30:23,111 | INFO   | Waiting for application startup. | uvicorn.error.startup():45  
+2021-07-12 18:30:23,112 | INFO   | ****************************** | main.handle_startup():46  
+2021-07-12 18:30:23,112 | INFO   | Initializing conversation engine. | main.handle_startup():47  
+2021-07-12 18:30:23,112 | INFO   | Starting chatty request/response listener and publisher. | main.handle_startup():48  
+2021-07-12 18:30:23,112 | INFO   | RMQ Publisher: Connecting | message_exchange.rabbitmq.run():461 
+2021-07-12 18:30:23,112 | INFO   | Application startup event. | main.handle_startup():54  
+2021-07-12 18:30:23,112 | INFO   | RMQ Publisher: Connecting to amqp://guest:guest@localhost:5672/%2F for queue:poc.chat.output and routing key:chat.output | message_exchange.rabbitmq.connect():372 
+2021-07-12 18:30:23,112 | INFO   | ****************************** | main.handle_startup():55  
+2021-07-12 18:30:23,112 | INFO   | Application startup complete. | uvicorn.error.startup():59  
+2021-07-12 18:30:23,113 | INFO   | Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit) | uvicorn.error._log_started_message():207 
+2021-07-12 18:30:23,116 | INFO   | RMQ Publisher: Connection opened for poc.chat.output:chat.output | message_exchange.rabbitmq.on_connection_open():386 
+2021-07-12 18:30:23,117 | INFO   | RMQ Publisher: Channel ready for poc.chat.output:chat.output | message_exchange.rabbitmq.on_channel_open():431 
+2021-07-12 18:30:23,117 | INFO   | RMQ Publisher: Adding channel close callback | message_exchange.rabbitmq.add_on_channel_close_callback():442 
+2021-07-12 18:30:25,224 | INFO   | Shutting down | uvicorn.error.shutdown():242 
+2021-07-12 18:30:25,325 | INFO   | Waiting for application shutdown. | uvicorn.error.shutdown():64  
+2021-07-12 18:30:25,326 | INFO   | Application shutdown complete. | uvicorn.error.shutdown():75  
+2021-07-12 18:30:25,326 | INFO   | Finished server process [123434] | uvicorn.error.serve():78  
+2021-07-12 18:30:55,914 | INFO   | Started server process [123724] | uvicorn.error.serve():65  
+2021-07-12 18:30:55,914 | INFO   | Waiting for application startup. | uvicorn.error.startup():45  
+2021-07-12 18:30:55,915 | INFO   | ****************************** | main.handle_startup():46  
+2021-07-12 18:30:55,915 | INFO   | Initializing conversation engine. | main.handle_startup():47  
+2021-07-12 18:30:55,915 | INFO   | Starting chatty request/response listener and publisher. | main.handle_startup():48  
+2021-07-12 18:30:55,915 | INFO   | RMQ Publisher: Connecting | message_exchange.rabbitmq.run():461 
+2021-07-12 18:30:55,915 | INFO   | Application startup event. | main.handle_startup():54  
+2021-07-12 18:30:55,915 | INFO   | ****************************** | main.handle_startup():55  
+2021-07-12 18:30:55,915 | INFO   | RMQ Publisher: Connecting to amqp://guest:guest@localhost:5672/%2F for queue:poc.chat.output and routing key:chat.output | message_exchange.rabbitmq.connect():372 
+2021-07-12 18:30:55,915 | INFO   | Application startup complete. | uvicorn.error.startup():59  
+2021-07-12 18:30:55,916 | INFO   | Uvicorn running on http://0.0.0.0:5001 (Press CTRL+C to quit) | uvicorn.error._log_started_message():207 
+2021-07-12 18:30:55,919 | INFO   | RMQ Publisher: Connection opened for poc.chat.output:chat.output | message_exchange.rabbitmq.on_connection_open():386 
+2021-07-12 18:30:55,920 | INFO   | RMQ Publisher: Channel ready for poc.chat.output:chat.output | message_exchange.rabbitmq.on_channel_open():431 
+2021-07-12 18:30:55,920 | INFO   | RMQ Publisher: Adding channel close callback | message_exchange.rabbitmq.add_on_channel_close_callback():442 
+2021-07-12 18:31:10,692 | INFO   | Publishing message:{"data": "Sample message 1"} on [poc.chat.output] | Time:2021-07-12 18:31:10.692266 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:12,708 | INFO   | Publishing message:{"data": "Sample message 2"} on [poc.chat.output] | Time:2021-07-12 18:31:12.708153 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:14,716 | INFO   | Publishing message:{"data": "Sample message 3"} on [poc.chat.output] | Time:2021-07-12 18:31:14.716559 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:16,727 | INFO   | Publishing message:{"data": "Sample message 4"} on [poc.chat.output] | Time:2021-07-12 18:31:16.726984 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:18,736 | INFO   | Publishing message:{"data": "Sample message 5"} on [poc.chat.output] | Time:2021-07-12 18:31:18.736766 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:20,745 | INFO   | Publishing message:{"data": "Sample message 6"} on [poc.chat.output] | Time:2021-07-12 18:31:20.745280 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:22,752 | INFO   | Publishing message:{"data": "Sample message 7"} on [poc.chat.output] | Time:2021-07-12 18:31:22.751973 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:24,762 | INFO   | Publishing message:{"data": "Sample message 8"} on [poc.chat.output] | Time:2021-07-12 18:31:24.762389 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:26,771 | INFO   | Publishing message:{"data": "Sample message 9"} on [poc.chat.output] | Time:2021-07-12 18:31:26.771592 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:28,782 | INFO   | Publishing message:{"data": "Sample message 10"} on [poc.chat.output] | Time:2021-07-12 18:31:28.782274 | message_exchange.publishers.publish():51  
+2021-07-12 18:31:57,402 | INFO   | Shutting down | uvicorn.error.shutdown():242 
+2021-07-12 18:31:57,503 | INFO   | Waiting for application shutdown. | uvicorn.error.shutdown():64  
+2021-07-12 18:31:57,503 | INFO   | Application shutdown complete. | uvicorn.error.shutdown():75  
+2021-07-12 18:31:57,503 | INFO   | Finished server process [123724] | uvicorn.error.serve():78  
