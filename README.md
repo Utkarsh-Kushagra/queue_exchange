@@ -1,13 +1,22 @@
 # queue_exchange
 
-** RABBITMQ should be running on docker service (pd-thirdparty-services)
+There are 3 services in this 
+* publisher_service-run on 7000 port
+``` uvicorn app.main:app --host 0.0.0.0 --port 7000 --reload-dir ./--reload --env-file ./app/dev.env
+* listener_service_chat - run on 5000 port
+``` uvicorn app.main:app --host 0.0.0.0 --port 5000 --reload-dir ./--reload --env-file ./app/dev.env
+* listener_service_db-run on 6000 port
+``` uvicorn app.main:app --host 0.0.0.0 --port 7000 --reload-dir ./--reload --env-file ./app/dev.env
+ Install requirements.txt
+ Available in all 3 services
+ 
+Check app.log for extensive logging
 
-1. pip install -r requirements.txt
-2. Run listener-service : uvicorn main:app --host 0.0.0.0 --port 5000 --reload-dir ./--reload --env-file ./dev.env
-3. Run publisher-service : uvicorn main:app --host 0.0.0.0 --port 5001 --reload-dir ./--reload --env-file ./dev.env
-4. Run python script : python run_test.py 
+## How to replicate the Issue
 
-Check app.log for istener-service and publisher-service
+Run the service on the ports mentioned
+Create the Database(test_rabbit) use schema.sql
+
 
 # Table Requirement
 CREATE DATABASE test_rabbit;
