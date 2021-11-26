@@ -16,7 +16,7 @@ Check app.log for extensive logging
 
 * Run the service on the ports mentioned
 * Create the Database(test_rabbit) use schema.sql
-* Now run run_test.py from base directory
+* Now run run_test.py from base directory (queue_exchange/queue_exchange/run_test.py)
 * On being asked Enter 15 as input for number of conversation objects
 * This will run 15 threads which will send 100 messages in a loop with a sleep of 2 seconds
 * code for the thread is available in 
