@@ -51,8 +51,8 @@ class AbstractMessageQueueListener:
     def message_callback(message):
         try:
             print(message)
-            update_result = insert_acknowledgement(message)
-            logger.info("Reciveved | Message:{}|  Time:{}".format(message,datetime.datetime.now()))
+            update_result = insert_acknowledgement(json.loads(message))
+            logger.info("Reciveved | Message:{}|  Time:{}".format(json.loads(message),datetime.datetime.now()))
         except:
             logger.error("Error in message exchange")
 
@@ -60,7 +60,7 @@ class AbstractMessageQueueListener:
 
 class DBInsertListener:
     def __init__(self):
-        self.listener = AbstractMessageQueueListener(queue_name="poc.db.output", routing_key="db.output", host="localhost")
+        self.listener = AbstractMessageQueueListener(queue_name="poc.db.output", routing_key="db.output", host=os.getenv("RABBITMQ_HOST","localhost"))
     
     def run(self):
         

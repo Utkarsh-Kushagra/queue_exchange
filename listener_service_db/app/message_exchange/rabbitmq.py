@@ -6,7 +6,7 @@ import pika
 import json
 
 logger = logging.getLogger(__name__)
-logging.getLogger("pika").setLevel(logging.CRITICAL)
+logging.getLogger("pika").setLevel(logging.INFO)
 
 class RabbitMQListener(object):
     """This is an example consumer that will handle unexpected interactions
@@ -272,7 +272,7 @@ class RabbitMQListener(object):
         :param pika.Spec.BasicProperties: properties
         :param bytes body: The message body
         """
-        logger.debug('Received message # %s from %s: %s',
+        logger.info('Received message # %s from %s: %s',
                     basic_deliver.delivery_tag, properties.app_id, body)
         body=json.loads(body)
         if self.on_message_callback is not None:
