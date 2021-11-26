@@ -9,7 +9,7 @@ LABEL git_branch=$BRANCH
 
 EXPOSE 8000
 
-COPY --from=publisher-service-pre-build /install /usr/local
+COPY --from=listener-service-chat-pre-build /install /usr/local
 COPY ./build/dist/app /app
 
 # Add docker-compose-wait tool -------------------

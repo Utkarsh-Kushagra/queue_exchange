@@ -20,21 +20,28 @@ logger = logging.getLogger(__name__)
 
 
 from sqlalchemy.orm import Session as DBSession, query_expression, relation
+
 from app.model import models
 from sqlalchemy import desc, func,distinct
 import datetime
 from datetime import date, timedelta
 import os
 from app.model.database import SessionLocal
-from app.message_exchange.publishers import crp as ChatResponsePublisher
-from app.message_exchange.publishers import dbp as DBInsertPublisher
+from app.model.database import get_db
+
+# from app.message_exchange.publishers import crp as ChatResponsePublisher
+# from app.message_exchange.publishers import dbp as DBInsertPublisher
+
+#from app.worker import worker
 import pprint
 
 import shutil
 from os import name, path
 from sqlalchemy import func
+
 from fastapi.responses import FileResponse
 from fastapi import status,HTTPException
+from app.model.database import engine
 from pytz import timezone
 import pytz
 import re
@@ -44,10 +51,12 @@ import base64
 import csv
 import ast
 import re
+import threading
 
 tz = pytz.timezone("Asia/Kolkata")
 def check_unique_rabbit_id(id_val:str):
     db_session=SessionLocal()
+    
     id_count = db_session.query(models.TRabbitMessageTracker).filter(id==id_val).count()
     if id_count==0:
         db_session.close()
@@ -58,8 +67,11 @@ def check_unique_rabbit_id(id_val:str):
 
 def create_update_rabbit_message_entry(message_id:str,message:str,publisher_time:str,listener_time:str,from_service:str,to_service:str):
     #logger.info("")
+
     db_session = SessionLocal()
-    logger.debug(f"DUMPING Message Id and from_service and to_service::-{message_id}::{from_service}::{to_service}")
+    connectiion_status = engine.pool.status()
+    #print(f"connection status inside rabbit_message_entry :{connectiion_status}")
+    logger.info(f"DUMPING Message Id and from_service and to_service::-{message_id}::{from_service}::{to_service}")
     existing_entry=db_session.query(models.TRabbitMessageTracker).filter(models.TRabbitMessageTracker.message_id==message_id).count()
     if existing_entry==0:#implies it is a new entry
         
@@ -81,7 +93,7 @@ def create_update_rabbit_message_entry(message_id:str,message:str,publisher_time
                     )
         db_session.add(new_entry)
         db_session.commit()
-        db_session.close()
+       # db_session.close()
         logger.debug(f"Added Entry:{new_entry.__dict__}")
     elif existing_entry==1:
         update_entry=db_session.query(models.TRabbitMessageTracker).filter(models.TRabbitMessageTracker.message_id==message_id).one()
@@ -98,11 +110,13 @@ def create_update_rabbit_message_entry(message_id:str,message:str,publisher_time
             last_update_time=datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
     
         db_session.commit()
-        db_session.close()
+       # db_session.close()
         
     return True
-
+lock_thread = threading.Lock()
 def publish_message(message,db_session:DBSession):
+    #lock_thread.acquire(1)
+    print(f"Acquired lock for {message}")
     is_unique=False
     while not is_unique:
         id = uuid.uuid1().hex
@@ -111,7 +125,32 @@ def publish_message(message,db_session:DBSession):
     #message = json.loads(message)
     
 
+    connectiion_status = engine.pool.status()
     
+
+    #print(f"connection status inside publish message is :{connectiion_status}")
+    # crp_id = "crp_"+id
+    # dbp_id = "dbp_"+id
+    # message_for_chat_listener = {"crp_id":crp_id,"message":message}
+    # message_for_db_listener = {"dbp_id":dbp_id,"message":message}
+    # print(message_for_chat_listener)
+    # print(message_for_db_listener)
+    # time_publish = datetime.datetime.strftime(datetime.datetime.now(tz).astimezone(tz).replace(tzinfo=None),"%Y-%m-%d %H:%M:%S.%f")
+    # is_inserted = create_update_rabbit_message_entry(crp_id,message_for_chat_listener,time_publish,None,"publisher-chat-response",None)
+    # logger.info("Insert Status:{}".format(is_inserted))
+    # #crp=ChatResponsePublisher()
+    # crp_thread = threading.Thread(target=ChatResponsePublisher.run, daemon=True)
+    # crp_thread.start()
+    # logger.info(f"Connection is {ChatResponsePublisher.publisher._connection}")
+    # ChatResponsePublisher.publish(json.dumps(message_for_chat_listener))
+    # logger.info(f'MESSAGE PUBLISHED  in Chat Queue:: {message_for_chat_listener}')
+    # is_inserted = create_update_rabbit_message_entry(dbp_id,message_for_db_listener,time_publish,None,"publisher-db-insert",None)
+    # #dbp = DBInsertPublisher()
+    # dbp_thread = threading.Thread(target=DBInsertPublisher.run, daemon=True)
+    # dbp_thread.start()
+    # DBInsertPublisher.publish(json.dumps(message_for_db_listener))
+    # logger.info(f'MESSAGE PUBLISHED  in DB Queue:: {message_for_db_listener}')
+
     crp_id = "crp_"+id
     dbp_id = "dbp_"+id
     message_for_chat_listener = {"crp_id":crp_id,"message":message}
@@ -125,10 +164,19 @@ def publish_message(message,db_session:DBSession):
     is_inserted = create_update_rabbit_message_entry(dbp_id,message_for_db_listener,time_publish,None,"publisher-db-insert",None)
     DBInsertPublisher.publish(json.dumps(message_for_db_listener))
     logger.info(f'MESSAGE PUBLISHED  in DB Queue:: {message_for_db_listener}')
+    #lock_thread.release()
+    return True
+
+    
 
 if __name__=="__main__":
-    db_session = SessionLocal()
-    print(db_session)
-    payload=json.dumps({"message":"hi"})
-    publish_message(payload,db_session)
+    message = {"crp_id":"123","message":"message"}
+    crp = ChatResponsePublisher()
+    crp_thread = threading.Thread(target=crp.run)
+    crp_thread.start()
+    crp.publisher.publish(message)
+    # db_session = SessionLocal()
+    # print(db_session)
+    # payload=json.dumps({"message":"hi"})
+    # publish_message(payload,db_session)
 

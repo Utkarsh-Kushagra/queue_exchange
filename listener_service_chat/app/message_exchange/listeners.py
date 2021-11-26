@@ -50,9 +50,9 @@ class AbstractMessageQueueListener:
     @staticmethod
     def message_callback(message):
         try:
-            print(message)
-            update_result = insert_acknowledgement(message)
-            logger.info("Reciveved | Message:{}|  Time:{}".format(message,datetime.datetime.now()))
+            #print(message)
+            update_result = insert_acknowledgement(json.loads(message))
+            logger.info("Reciveved | Message:{}|  Time:{}".format(json.loads(message),datetime.datetime.now()))
         except:
             logger.error("Error in message exchange")
 
@@ -60,7 +60,7 @@ class AbstractMessageQueueListener:
 
 class ChatResponseListner:
     def __init__(self):
-        self.listener = AbstractMessageQueueListener(queue_name="poc.chat.output", routing_key="chat.output", host="localhost")
+        self.listener = AbstractMessageQueueListener(queue_name="poc.chat.output", routing_key="chat.output", host=os.getenv("RABBITMQ_HOST","localhost"))
     
     def run(self):
         

@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session as DBSession
 from app.database.queries import publish_message
 from app.model.database import get_db
 from app.model import schemas
+from app.worker.worker import create_message
 import json
 import datetime
 import pytz
@@ -19,10 +20,22 @@ router=APIRouter()
 
 
 @router.post('/send-message')
-async def send_message(message:str=Form(...), db: DBSession = Depends(get_db)):
+async def send_message(message:str=Form(...),db: DBSession = Depends(get_db)):
     # insert in DB before publishing
-    print(message)
-    publish_result = publish_message(message,db)
+    #print(message)
+    #publish_result = publish_message(message,db)
+    publish_result = create_message(message)
+    
     
     return f'Message Published : {message}'
 
+
+
+# @router.post('/send-message')
+# async def send_message(message:str=Form(...)):
+#     # insert in DB before publishing
+#     #print(message)
+#     #publish_result = create_message(message)
+    
+    
+#     return f'Message Published : {message}'

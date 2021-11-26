@@ -34,6 +34,6 @@ clean:
 
 image:
 	make build
-	docker build -t publisher-service-pre-build -f Dockerfile.build .
-	docker build -t vengagedockerhub/publisher-service:$(BRANCH)-$(TAG).$(COUNT) --build-arg GIT_COMMIT=$(SHA1) --build-arg BRANCH=$(BRANCH) .
-	docker push vengagedockerhub/publisher-service:$(BRANCH)-$(TAG).$(COUNT)
+	docker build -t listener-service-chat-pre-build -f Dockerfile.build .
+	docker build -t vengagedockerhub/listener-service-chat:$(BRANCH)-$(TAG).$(COUNT) --build-arg GIT_COMMIT=$(SHA1) --build-arg BRANCH=$(BRANCH) .
+	docker push vengagedockerhub/listener-service-chat:$(BRANCH)-$(TAG).$(COUNT)

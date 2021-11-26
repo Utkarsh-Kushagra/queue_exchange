@@ -119,7 +119,7 @@ def create_update_rabbit_message_entry(message_id:str,message:str,publisher_time
 
 
 def insert_acknowledgement(msg:json)->bool:
-          
+    logger.info("Did it come here")      
     tz = pytz.timezone("Asia/Kolkata")
     message_id = msg["crp_id"]
     time_listen = datetime.datetime.strftime(datetime.datetime.now(tz).astimezone(tz).replace(tzinfo=None),"%Y-%m-%d %H:%M:%S.%f")

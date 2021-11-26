@@ -1,13 +1,16 @@
-import os
+import os,sys
 import logging
 import time
 import functools
 import datetime
 import pika
 import pytz
+import threading
+import json
 
 logger = logging.getLogger(__name__)
 
+sys.path.append(os.path.realpath(os.path.relpath("../..")))
 from app.message_exchange.rabbitmq import RabbitMQPublisher
 
 
@@ -18,11 +21,15 @@ class AbstractPublisher:
         self.host = host
         self._reconnect_delay=0
         self.publisher = RabbitMQPublisher(queue_name=self.queue_name, routing_key=self.routing_key, host=self.host)
+        self.lock_thread = threading.Lock()
+        #threading.Thread(target=self.publisher(queue_name=self.queue_name, routing_key=self.routing_key, host=self.host))
 
     def run(self):
         while True:
             try:
+                print("Does it come here")
                 self.publisher.run()
+                print(self.publisher.run())
             except KeyboardInterrupt:
                 self.publisher.stop()
                 break
@@ -48,20 +55,31 @@ class AbstractPublisher:
         return self._reconnect_delay
     
     def publish(self, message:str):
-        logger.info("Publishing message:{} on [{}] | Time:{}".format(message, self.queue_name,datetime.datetime.now()))
+        print("Publishing message:{} on [{}] | Time:{}".format(message, self.queue_name,datetime.datetime.now()))
         self.publisher.publish(message)
         tz = pytz.timezone("Asia/Kolkata")
+        
         return datetime.datetime.now(tz).astimezone(tz).replace(tzinfo=None)
 
-class __ChatResponsePublisher(AbstractPublisher):
+class ChatResponsePublisher(AbstractPublisher):
     def __init__(self) -> None:
-        super().__init__(queue_name="poc.chat.output", routing_key="chat.output", host="localhost")
+        super().__init__(queue_name="poc.chat.output", routing_key="chat.output", host=os.getenv("RABBITMQ_HOST","localhost"))
 
-crp = __ChatResponsePublisher()
+crp = ChatResponsePublisher()
 
-class __DBInsertPublisher(AbstractPublisher):
+class DBInsertPublisher(AbstractPublisher):
     def __init__(self) -> None:
-        super().__init__(queue_name="poc.db.output", routing_key="db.output", host="localhost")
+        super().__init__(queue_name="poc.db.output", routing_key="db.output", host=os.getenv("RABBITMQ_HOST","localhost"))
 
-dbp = __DBInsertPublisher()
+dbp = DBInsertPublisher()
+
+
+
+if __name__=="__main__":
+    import threading
+    dbp = DBInsertPublisher()
+    z = threading.Thread(target=dbp.run, daemon=True)
+    z.start()
+    dbp.publisher.publish(json.dumps({'dbp_id': 'dbp_333c8fdb4b9311ec9532d5476e510adb', 'message': 'Thread :4 Message 97'}))
+    
 

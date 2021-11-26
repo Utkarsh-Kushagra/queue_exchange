@@ -6,7 +6,7 @@ import pika
 import json
 
 logger = logging.getLogger(__name__)
-logging.getLogger("pika").setLevel(logging.CRITICAL)
+logging.getLogger("pika").setLevel(logging.DEBUG)
 
 class RabbitMQListener(object):
     """This is an example consumer that will handle unexpected interactions
@@ -44,6 +44,8 @@ class RabbitMQListener(object):
         # In production, experiment with higher prefetch values
         # for higher consumer throughput
         self._prefetch_count = 1
+
+        
 
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -272,7 +274,7 @@ class RabbitMQListener(object):
         :param pika.Spec.BasicProperties: properties
         :param bytes body: The message body
         """
-        logger.debug('Received message # %s from %s: %s',
+        logger.info('Received message # %s from %s: %s',
                     basic_deliver.delivery_tag, properties.app_id, body)
         body=json.loads(body)
         if self.on_message_callback is not None:
@@ -362,6 +364,9 @@ class RabbitMQPublisher:
 
         self.EXCHANGE = 'POC'
         self.EXCHANGE_TYPE = 'direct'
+        self._deliveries = None
+        self._acked = None
+        self._nacked = None
     
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -458,6 +463,12 @@ class RabbitMQPublisher:
         """Run the example consumer by connecting to RabbitMQ and then
         starting the IOLoop to block and allow the SelectConnection to operate.
         """
+
+        logger.info("RMQ Publisher: Connecting")
+        self._deliveries=[]
+        self._acked = 0
+        self._nacked = 0
+        self._message_number = 0
         logger.info("RMQ Publisher: Connecting")
         self._connection = self.connect()
         self._connection.ioloop.start()
@@ -523,14 +534,65 @@ class RabbitMQPublisher:
 
     def publish(self,message:str)->bool:
         # channel.queue_declare(queue=queue,durable=True)
-        if not self._channel:
+        logger.critical(f"Is Channel Open::{self._channel}")
+        if self._channel is None:
+            
             return False
+        
         t0=time.time()
-        self._channel.basic_publish(exchange=self.EXCHANGE,
-                    routing_key=self._routing_key,
-                    body=str(message))
-        t1 = time.time()
-        #logger.profile("RMQ Publisher: Publishing message took:{} sec.".format(t1-t0))
+        properties = pika.BasicProperties(
+            app_id='example-publisher',
+            content_type='application/json')
+        try:
+            self._channel.basic_publish(exchange=self.EXCHANGE,
+                        routing_key=self._routing_key,
+                        body=json.dumps(message,ensure_ascii=False),
+                        properties = properties)
+            t1 = time.time()
+            self._message_number += 1
+            self._deliveries.append(self._message_number)
+            self.enable_delivery_confirmations()
+            logger.info("RMQ Publisher: Publishing message took:{} sec.".format(t1-t0))
+        except Exception as e:
+            logger.error(e)
+            pass
         return True
+
+    def enable_delivery_confirmations(self):
+        """Send the Confirm.Select RPC method to RabbitMQ to enable delivery
+        confirmations on the channel. The only way to turn this off is to close
+        the channel and create a new one.
+        When the message is confirmed from RabbitMQ, the
+        on_delivery_confirmation method will be invoked passing in a Basic.Ack
+        or Basic.Nack method from RabbitMQ that will indicate which messages it
+        is confirming or rejecting.
+        """
+        logger.info(f'Issuing Confirm.Select RPC command:{self._routing_key}')
+        self._channel.confirm_delivery(self.on_delivery_confirmation)    
+
+    def on_delivery_confirmation(self,method_frame):
+        """Invoked by pika when RabbitMQ responds to a Basic.Publish RPC
+        command, passing in either a Basic.Ack or Basic.Nack frame with
+        the delivery tag of the message that was published. The delivery tag
+        is an integer counter indicating the message number that was sent
+        on the channel via Basic.Publish. Here we're just doing house keeping
+        to keep track of stats and remove message numbers that we expect
+        a delivery confirmation of from the list used to keep track of messages
+        that are pending confirmation.
+        :param pika.frame.Method method_frame: Basic.Ack or Basic.Nack frame
+        """
+
+        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
+        logger.info('Received %s for delivery tag: %i', method_frame.method.NAME,
+                    method_frame.method.delivery_tag)
+        if confirmation_type == 'ack':
+            self._acked += 1
+        elif confirmation_type == 'nack':
+            self._nacked += 1
+        self._deliveries.remove(method_frame.method.delivery_tag)
+        logger.critical(
+            'Published %i messages, %i have yet to be confirmed, '
+            '%i were acked and %i were nacked', self._message_number,
+            len(self._deliveries), self._acked, self._nacked)
         
        

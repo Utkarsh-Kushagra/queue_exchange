@@ -47,10 +47,11 @@ def handle_startup():
     logger.info("*"*30)
     logger.info("Initializing conversation engine.")
     
-
+    #crp = ChatResponsePublisher()
     x = threading.Thread(target=ChatResponsePublisher.run, daemon=True)
     x.start()
-
+    
+    #dip = DBInsertPublisher()
     y = threading.Thread(target=DBInsertPublisher.run, daemon=True)
     y.start()
 
