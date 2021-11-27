@@ -8,14 +8,12 @@ import logging
 import json
 
 sys.path.append(os.path.realpath(os.path.relpath("../..")))
-# from dotenv import load_dotenv
-# load_dotenv(Path(os.path.realpath(os.path.relpath("..")))/"rahul_dev.env")
+
 logger = logging.getLogger(__name__)
 import threading
 import uuid
 from app.database import queries
-#from app.message_exchange.publishers import ChatResponsePublisher
-# from app.message_exchange.publishers import DBInsertPublisher'
+
 from app.model.database import SessionLocal
 from sqlalchemy.orm import Session as DBSession
 from app.model.database import get_db
@@ -60,29 +58,15 @@ class MyWorker(AbstractWorker):
         
     
     
-    def run(self):
-        
-        #while True:
-            
-        num_acquires = 0
-            
-        #while num_acquires < 3:
-        #item = self.queue.get()  
-        #logging.debug('Trying to acquire')
-        
-        #logger.info(f"Acquired lock in {num_acquires+1} attempt")    
+    def run(self): 
         
         thread_task = ThreadTask(self.worker_id)
         t = threading.Thread(target=thread_task.run_medication_task,args=(self,self.worker_id),daemon=True)
         t.run()
         print(t.name)
-        # thread_lock.release()
-            #print(f"Released {self.name}")
         
-        # finally:
-        #     pass
-        #     #self.queue.task_done()
-        
+    #this function is the wrapper publisher code. Here we publish and as well insert in DB.
+    # Acquire lock here   
     def publish_message(self,message):
         thread_id = threading.get_ident()
         logger.critical(f"*********Acquired lock for Chat thread {thread_id} and message:: {message}***********")
@@ -97,8 +81,8 @@ class MyWorker(AbstractWorker):
             is_unique = queries.check_unique_rabbit_id(id)
         
         tz="Asia/Kolkata"
-        crp_id = id
-        dbp_id = id
+        crp_id = "crp_"+id
+        dbp_id = "dbp_"+id
         message_for_chat_listener = {"crp_id":crp_id,"message":message}
         
         time_publish = datetime.datetime.strftime(datetime.datetime.now(),"%Y-%m-%d %H:%M:%S.%f")
@@ -122,30 +106,24 @@ class MyWorker(AbstractWorker):
         logger.critical(f"*********Release lock for Database thread {thread_id} and message:: {message}***********")
         return True
 
-#filling the queue
+#replicates conversation engine. Create threads as provided in run_test.py
+#create 15 threads and keep in a list in memory. Keep sending messages
 def create_message(num_of_workers):
-    myqueue = Queue()
+
     print(f"Num of Conversation Objects Needed:{num_of_workers}")
 
-    # msg =[]
-    # for i in range(int(10)):
-    #     myqueue.put("Message {}".format(i))
-
-    # creating threads
-    #print(myqueue)
     workerList = []
     for i in range (int(num_of_workers)):
       
         worker = MyWorker(i,f"Worker :{i+1} ")
         workerList.append(worker)
-    for j in range(100):
+    for j in range(10):
         for worker in workerList:
             worker.run()
-        sleep(15)
+        sleep(2)
         logger.info(f"Done for cycle :{j}")
                 
 
-    #myqueue.join()
 
 if __name__=="__main__":
     create_message(100)

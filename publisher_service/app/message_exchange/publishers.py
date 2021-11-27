@@ -13,6 +13,13 @@ logger = logging.getLogger(__name__)
 sys.path.append(os.path.realpath(os.path.relpath("../..")))
 from app.message_exchange.rabbitmq import RabbitMQPublisher
 
+def singleton(class_):
+    instances = {}
+    def getinstance(*args, **kwargs):
+        if class_ not in instances:
+            instances[class_] = class_(*args, **kwargs)
+        return instances[class_]
+    return getinstance
 
 class AbstractPublisher:
     def __init__(self, queue_name:str, routing_key:str, host="localhost") -> None:
@@ -60,13 +67,13 @@ class AbstractPublisher:
         tz = pytz.timezone("Asia/Kolkata")
         
         return datetime.datetime.now(tz).astimezone(tz).replace(tzinfo=None)
-
+@singleton
 class ChatResponsePublisher(AbstractPublisher):
     def __init__(self) -> None:
         super().__init__(queue_name="poc.chat.output", routing_key="chat.output", host=os.getenv("RABBITMQ_HOST","localhost"))
 
 crp = ChatResponsePublisher()
-
+@singleton
 class DBInsertPublisher(AbstractPublisher):
     def __init__(self) -> None:
         super().__init__(queue_name="poc.db.output", routing_key="db.output", host=os.getenv("RABBITMQ_HOST","localhost"))
